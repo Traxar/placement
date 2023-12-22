@@ -1,6 +1,6 @@
 # placement
 
-This zig library helps simplify working with 3D positions and rotations.
+This zig library helps simplify working with 3D positions and orientations/rotations.
 
 Features:
 
@@ -9,5 +9,5 @@ Features:
 
 Design Choices:
 
-    * for simplicity sake positions use the same 'Vec' struct as the orientations and thus have 1 coordinate that is always 0
+    * for simplicity: positions use the same 'Vec' struct as the orientations and thus have 1 coordinate that is always 0
 
