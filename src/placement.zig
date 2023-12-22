@@ -2,11 +2,11 @@ const std = @import("std");
 const testing = std.testing;
 const VecType = @import("vec.zig").VecType;
 
-/// f must be a float type
-pub fn PlacementType(comptime f: type) type {
+/// 'F' must be a float type
+pub fn PlacementType(comptime F: type) type {
     return struct {
         const Placement = @This();
-        const Vec = VecType(f);
+        const Vec = VecType(F);
         pos: Vec,
         rot: Vec,
 
@@ -15,31 +15,33 @@ pub fn PlacementType(comptime f: type) type {
             .rot = Vec.id,
         };
 
-        pub fn from(x: f, y: f, z: f, a: f, b: f, c: f) Placement {
+        pub fn from(coord: @Vector(3, F), axis: @Vector(3, F), angle: F) Placement {
             return Placement{
-                .pos = Vec.pos_from(x, y, z),
-                .rot = Vec.quat_from(Vec.z_axis, c).mul(Vec.quat_from(Vec.y_axis, b)).mul(Vec.quat_from(Vec.x_axis, a)),
+                .pos = Vec.pos_from(coord),
+                .rot = Vec.quat_from(axis, angle),
             };
         }
 
-        pub fn xyz(self: Placement) [3]f {
-            return @as([4]f, self.pos.v)[0..3].*;
-        }
-
-        pub fn abc(self: Placement) [3]f {
-            const x = self.rot.mul(Vec.x_axis).mul(self.rot.inv());
-            const b = std.math.asin(std.math.clamp(x.v[2], -1.0, 1.0));
-            const c = if (b == 1 or b == -1 or (x.v[1] == 0 and x.v[0] == 0)) 0.0 else std.math.atan2(f, x.v[1], x.v[0]);
-            const q = Vec.quat_from(Vec.z_axis, c).mul(Vec.quat_from(Vec.y_axis, b)).inv().mul(self.rot);
-            std.debug.print("\nq: {}", .{q});
-            const a = 2 * std.math.asin(std.math.clamp(q.v[0], -1.0, 1.0));
-            return [_]f{ a, b, c };
+        /// euler angles: x-y-z
+        pub fn from_euler(coord: @Vector(3, F), angles: @Vector(3, F)) Placement {
+            return Placement{
+                .pos = Vec.pos_from(coord),
+                .rot = Vec.quat_from(.{ 0, 0, 1 }, angles[2]).mul(Vec.quat_from(.{ 0, 1, 0 }, angles[1])).mul(Vec.quat_from(.{ 1, 0, 0 }, angles[0])),
+            };
         }
 
         pub fn inv(self: Placement) Placement {
+            const rot_inv = self.rot.inv();
             return Placement{
-                .pos = self.rot.inv().mul(self.pos.neg()).mul(self.rot),
-                .rot = self.rot.inv(),
+                .pos = rot_inv.mul(self.pos.neg()).mul(self.rot),
+                .rot = rot_inv,
+            };
+        }
+
+        pub fn fix(self: Placement) Placement {
+            return Placement{
+                .pos = self.pos.fix_pos(),
+                .rot = self.rot.fix_quat(),
             };
         }
 
@@ -56,12 +58,13 @@ pub fn PlacementType(comptime f: type) type {
 
 test "placements" {
     const Placement = PlacementType(f64);
-    const a = Placement.from(1, 2, 3, std.math.pi / 2.0, 0, 0);
+    const a = Placement.from_euler(
+        .{ 1, 2, 3 },
+        .{ std.math.pi / 2.0, std.math.pi / 2.0, std.math.pi / 2.0 },
+    );
     const b = a.apply(a.inv());
     for (0..4) |i| {
         try testing.expectApproxEqAbs(Placement.origin.pos.v[i], b.pos.v[i], 1E-8);
         try testing.expectApproxEqAbs(Placement.origin.rot.v[i], b.rot.v[i], 1E-8);
     }
-    std.debug.print("\nposition: {any}", .{a.xyz()});
-    std.debug.print("\nxyz rotation: {any}", .{a.abc()});
 }
