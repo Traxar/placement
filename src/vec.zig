@@ -41,11 +41,11 @@ pub fn VecType(comptime F: type) type {
             return Vec{ .v = self.v * V{ 1, -1, -1, -1 } };
         }
 
-        pub fn norm(self: Vec) F {
+        fn norm(self: Vec) F {
             return @sqrt(@reduce(.Add, self.v * self.v));
         }
 
-        pub fn div(self: Vec, d: F) !Vec {
+        fn div(self: Vec, d: F) !Vec {
             if (d == 0) return error.DivByZero;
             return Vec{ .v = self.v / @as(V, @splat(d)) };
         }
