@@ -38,7 +38,7 @@ pub fn VecType(comptime F: type) type {
         }
 
         pub fn inv(self: Vec) Vec {
-            return Vec{ .v = self.v * V{ 1, -1, -1, -1 } };
+            return Vec{ .v = V{ 1, -1, -1, -1 } * self.v };
         }
 
         fn norm(self: Vec) F {
@@ -67,13 +67,13 @@ pub fn VecType(comptime F: type) type {
 
         pub fn mul(self: Vec, other: Vec) Vec {
             const w = @as(V, @splat(self.v[0])) * other.v;
-            const i = self.v[1];
-            const x = @shuffle(F, V{ i, -i, i, -i } * other.v, undefined, @Vector(4, i32){ 1, 0, 3, 2 });
-            const j = self.v[2];
-            const y = @shuffle(F, V{ j, -j, -j, j } * other.v, undefined, @Vector(4, i32){ 2, 3, 0, 1 });
-            const k = self.v[3];
-            const z = @shuffle(F, V{ k, k, -k, -k } * other.v, undefined, @Vector(4, i32){ 3, 2, 1, 0 });
-            return Vec{ .v = w + x + y + z };
+            const i = V{ -1, 1, -1, 1 } * @as(V, @splat(self.v[1]));
+            const x = @shuffle(F, other.v, undefined, @Vector(4, i32){ 1, 0, 3, 2 });
+            const j = V{ -1, 1, 1, -1 } * @as(V, @splat(self.v[2]));
+            const y = @shuffle(F, other.v, undefined, @Vector(4, i32){ 2, 3, 0, 1 });
+            const k = V{ -1, -1, 1, 1 } * @as(V, @splat(self.v[3]));
+            const z = @shuffle(F, other.v, undefined, @Vector(4, i32){ 3, 2, 1, 0 });
+            return Vec{ .v = @mulAdd(V, z, k, @mulAdd(V, y, j, @mulAdd(V, x, i, w))) };
         }
     };
 }
