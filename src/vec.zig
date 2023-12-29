@@ -1,7 +1,7 @@
 const std = @import("std");
 const testing = std.testing;
 
-/// f must be a float type
+/// 'F' must be a float type
 pub fn VecType(comptime F: type) type {
     return struct {
         const Vec = @This();
@@ -29,7 +29,7 @@ pub fn VecType(comptime F: type) type {
             if (@abs(self.v[0]) >= 1) return .{};
             const a = 2 * std.math.acos(self.v[0]);
             const n = @sqrt(1 - self.v[0] * self.v[0]);
-            var ax = self.div(n) catch return .{};
+            var ax = self.div(n) catch unreachable;
             return .{ .axis = ax.pos(), .angle = a };
         }
 

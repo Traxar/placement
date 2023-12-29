@@ -45,8 +45,8 @@ pub fn PlacementType(comptime F: type) type {
             };
         }
 
-        ///0 -> self -> other
-        ///0 -> result
+        /// 0 -> self -> other
+        /// 0 -> result
         pub fn apply(self: Placement, other: Placement) Placement {
             return Placement{
                 .pos = self.pos.add(self.rot.mul(other.pos).mul(self.rot.inv())),
