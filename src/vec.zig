@@ -54,11 +54,11 @@ pub fn VecType(comptime F: type) type {
             if (self.v[0] == 0) return self;
             var h = self;
             h.v[0] = 0;
-            return Vec{ .v = try h.div(h.norm() / self.norm()) };
+            return try h.div(h.norm() / self.norm());
         }
 
         pub fn fix_quat(self: Vec) !Vec {
-            return Vec{ .v = try self.div(self.norm()) };
+            return try self.div(self.norm());
         }
 
         pub fn add(self: Vec, other: Vec) Vec {

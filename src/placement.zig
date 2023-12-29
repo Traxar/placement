@@ -38,10 +38,10 @@ pub fn PlacementType(comptime F: type) type {
             };
         }
 
-        pub fn fix(self: Placement) Placement {
+        pub fn fix(self: Placement) !Placement {
             return Placement{
-                .pos = self.pos.fix_pos(),
-                .rot = self.rot.fix_quat(),
+                .pos = try self.pos.fix_pos(),
+                .rot = try self.rot.fix_quat(),
             };
         }
 
