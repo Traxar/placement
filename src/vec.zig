@@ -11,12 +11,12 @@ pub fn VecType(comptime F: type) type {
         pub const origin = Vec{ .v = V{ 0, 0, 0, 0 } };
         pub const id = Vec{ .v = V{ 1, 0, 0, 0 } };
 
-        pub fn pos_from(coord: @Vector(3, F)) Vec {
+        pub fn posFrom(coord: @Vector(3, F)) Vec {
             return Vec{ .v = V{ 0, coord[0], coord[1], coord[2] } };
         }
 
-        pub fn quat_from(axis: @Vector(3, F), angle: F) Vec {
-            var ax = pos_from(axis);
+        pub fn quatFrom(axis: @Vector(3, F), angle: F) Vec {
+            var ax = posFrom(axis);
             const a = angle * 0.5;
             return Vec{ .v = V{ @cos(a), 0, 0, 0 } + @as(V, @splat(@sin(a) / ax.norm())) * ax.v };
         }
@@ -50,14 +50,14 @@ pub fn VecType(comptime F: type) type {
             return Vec{ .v = self.v / @as(V, @splat(d)) };
         }
 
-        pub fn fix_pos(self: Vec) !Vec {
+        pub fn normalizePos(self: Vec) !Vec {
             if (self.v[0] == 0) return self;
             var h = self;
             h.v[0] = 0;
             return try h.div(h.norm() / self.norm());
         }
 
-        pub fn fix_quat(self: Vec) !Vec {
+        pub fn normalizeQuat(self: Vec) !Vec {
             return try self.div(self.norm());
         }
 
@@ -80,18 +80,18 @@ pub fn VecType(comptime F: type) type {
 
 test "positions" {
     const Vec = VecType(f32);
-    const a = Vec.pos_from(.{ 1, 2, 3 });
-    const b = Vec.pos_from(.{ 1, -1, -1 });
+    const a = Vec.posFrom(.{ 1, 2, 3 });
+    const b = Vec.posFrom(.{ 1, -1, -1 });
     const c = a.add(b.neg());
     try std.testing.expectEqual(@as(f32, 5), c.norm());
 }
 
 test "quaternions" {
     const Vec = VecType(f64);
-    const a = Vec.pos_from(.{ 1, 2, 3 });
-    const qx = Vec.quat_from(.{ 1, 0, 0 }, std.math.pi / 2.0);
-    const qy = Vec.quat_from(.{ 0, 1, 0 }, std.math.pi / 2.0);
-    const qz = Vec.quat_from(.{ 0, 0, 1 }, std.math.pi / 2.0);
+    const a = Vec.posFrom(.{ 1, 2, 3 });
+    const qx = Vec.quatFrom(.{ 1, 0, 0 }, std.math.pi / 2.0);
+    const qy = Vec.quatFrom(.{ 0, 1, 0 }, std.math.pi / 2.0);
+    const qz = Vec.quatFrom(.{ 0, 0, 1 }, std.math.pi / 2.0);
     const q = qz.mul(qy.mul(qx));
     try testing.expect(@reduce(.Max, @abs(q.rot().axis - @Vector(3, f64){ 0, 1, 0 })) < 1E-8);
     try testing.expectApproxEqAbs(@as(f64, std.math.pi / 2.0), q.rot().angle, 1E-8);

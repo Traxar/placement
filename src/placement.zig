@@ -17,16 +17,16 @@ pub fn PlacementType(comptime F: type) type {
 
         pub fn from(coord: @Vector(3, F), axis: @Vector(3, F), angle: F) Placement {
             return Placement{
-                .pos = Vec.pos_from(coord),
-                .rot = Vec.quat_from(axis, angle),
+                .pos = Vec.posFrom(coord),
+                .rot = Vec.quatFrom(axis, angle),
             };
         }
 
         /// euler angles: x-y-z
-        pub fn from_euler(coord: @Vector(3, F), angles: @Vector(3, F)) Placement {
+        pub fn fromEuler(coord: @Vector(3, F), angles: @Vector(3, F)) Placement {
             return Placement{
-                .pos = Vec.pos_from(coord),
-                .rot = Vec.quat_from(.{ 0, 0, 1 }, angles[2]).mul(Vec.quat_from(.{ 0, 1, 0 }, angles[1])).mul(Vec.quat_from(.{ 1, 0, 0 }, angles[0])),
+                .pos = Vec.posFrom(coord),
+                .rot = Vec.quatFrom(.{ 0, 0, 1 }, angles[2]).mul(Vec.quatFrom(.{ 0, 1, 0 }, angles[1])).mul(Vec.quatFrom(.{ 1, 0, 0 }, angles[0])),
             };
         }
 
@@ -38,10 +38,10 @@ pub fn PlacementType(comptime F: type) type {
             };
         }
 
-        pub fn fix(self: Placement) !Placement {
+        pub fn normalize(self: Placement) !Placement {
             return Placement{
-                .pos = try self.pos.fix_pos(),
-                .rot = try self.rot.fix_quat(),
+                .pos = try self.pos.normalizePos(),
+                .rot = try self.rot.normalizeQuat(),
             };
         }
 
@@ -58,7 +58,7 @@ pub fn PlacementType(comptime F: type) type {
 
 test "placements" {
     const Placement = PlacementType(f64);
-    const a = Placement.from_euler(
+    const a = Placement.fromEuler(
         .{ 1, 2, 3 },
         .{ std.math.pi / 2.0, std.math.pi / 2.0, std.math.pi / 2.0 },
     );
